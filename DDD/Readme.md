@@ -1,10 +1,4 @@
-Here is a training presentation on Domain-Driven Design (DDD) for your team, formatted as a GitHub README file, drawing extensively from the provided sources.
-
----
-
-# Domain-Driven Design (DDD) Training
-
-## Tackling Complexity in the Heart of Software
+# Domain-Driven Design (DDD)
 
 This README provides an overview of Domain-Driven Design (DDD), a philosophy and set of practices aimed at accelerating software projects that deal with complex domains. It emphasizes placing the primary focus on the **domain and domain logic**, basing complex domain designs on a **model**.
 
@@ -66,6 +60,24 @@ A **Layered Architecture** partitions a complex program into distinct layers, al
 ### 2.3. Value Objects
 **Value Objects** measure, quantify, or describe a thing in the domain, and are identified by the composition of their attributes, not an inherent identity. They are typically **immutable** after creation, meaning their observable state never changes. (e.g., a `Date`, `Money` amount, or `Address`).
 
+Domain Model:
+───────────────────────────────────────────
+│               Domain Model              │
+│ ┌───────────────────┐                   │
+│ │      Entity       │                   │
+│ │   ┌───────────┐   │     ┌───────────┐ │
+│ │   │ Identity  │───┼───▶│ Entity     │ │
+│ │   └───────────┘   │     └───────────┘ │
+│ │   ┌───────────┐   │                   │
+│ │   │ValueObject│───┤                   │
+│ │   └───────────┘   │                   │
+│ └───────────────────┘                   │
+│                                         │
+│ ┌───────────────────┐                   │
+│ │   Domain Event    │                   │
+│ └───────────────────┘                   │
+───────────────────────────────────────────
+
 ### 2.4. Services
 A **Service** is an operation offered as an interface that stands alone in the model, without encapsulating state like Entities or Value Objects.
 *   **Purpose:** Services represent important domain concepts that are activities or transformations, rather than things (e.g., "funds transfer").
@@ -74,10 +86,40 @@ A **Service** is an operation offered as an interface that stands alone in the m
     2.  Interface defined in terms of other domain model elements, using Ubiquitous Language operation names, domain objects as parameters/results.
     3.  Is **stateless**, meaning any client can use any instance without regard to its history.
 
+Domain Service Integration:
+─────────────────────────────────────────────────────────
+│  ┌───────────────────┐                                 │
+│  │  Domain Service   │                                 │
+│  └─────┬─────────────┘                                 │
+│        │                                               │
+│        ▼                                               │
+│ ┌───────────────────────────────────────────────┐      │
+│ │               Aggregate Root                  │      │
+│ │ ┌───────────┐     ┌───────────┐   ┌─────────┐ │      │
+│ │ │ Entity    │───▶│ValueObject│──▶│ Entity  │ │      │
+│ │ └───────────┘     └───────────┘   └─────────┘ │      │
+│ └───────────────────────────────────────────────┘      │
+─────────────────────────────────────────────────────────
+
 ### 2.5. Aggregates
 An **Aggregate** is a cluster of associated objects treated as a unit for the purpose of data changes.
 *   **Root:** External references are restricted to one member of the Aggregate, designated as the "**root**".
 *   **Invariants:** A set of consistency rules applies within the Aggregate's boundaries. This helps maintain transactional integrity (e.g., a `Purchase Order` and its `Line Items`).
+
+─────────────────────────────────────────────────────
+│ Aggregate                                          │
+│ ┌───────────────────────────────────────────────┐  │
+│ │               Aggregate Root                  │  │
+│ │ ┌───────────┐     ┌───────────┐   ┌─────────┐ │  │
+│ │ │ Entity    │───▶ │ValueObject│──▶│ Entity  │ │  │
+│ │ └───────────┘     └───────────┘   └─────────┘ │  │
+│ │     ▲                                         │  │
+│ └─────┼─────────────────────────────────────────┘  │
+│       │                                           │
+│   ┌───┴───────────┐                               │
+│   │ Repository    │                               │
+│   └───────────────┘                               │
+─────────────────────────────────────────────────────
 
 ### 2.6. Factories
 **Factories** are separate objects responsible for creating instances of complex objects and Aggregates.
@@ -89,6 +131,24 @@ A **Repository** provides a practical means of acquiring references to pre-exist
 *   **Purpose:** It encapsulates the underlying persistence technology and query strategy, decoupling the application and domain design from these technical details.
 *   **Benefits:** Simplifies client code, allows flexible queries, and communicates design decisions about object access. It lifts the burden of data storage and retrieval from the client, letting the client focus on the model.
 
+Domain Model & Infrastructure (Hexagonal):
+─────────────────────────────────────────────────────────────────────────────
+│    Application Layer                                                      │
+│ ┌─────────────────────┐                                                   │
+│ │ Domain Application  │───────────┐                                       │
+│ └─────────────────────┘           │                                       │
+│ ┌─────────────────────┐           ▼                                       │
+│ │    Domain Model     │ ┌───────────────────┐                             │
+│ │  ┌───────────┐      │ │Repository (Port)  │                             │
+│ │  │Aggregate  │◀─────┼─┼───────────────────┼───────────┐                 │
+│ │  └───────────┘      │ │Adapter (Infra)    │           │                 │
+│ └─────────────────────┘ └───────────────────┘           │                 │
+│                                                         ▼                 │
+│ ┌───────────────┐      ┌─────────────┐       ┌───────────────────┐        │
+│ │ User Interface│      │ REST API    │       │  Database         │        │
+│ └───────────────┘      └─────────────┘       └───────────────────┘        │
+─────────────────────────────────────────────────────────────────────────────
+
 ---
 
 ## 3. Strategic Design
@@ -99,6 +159,22 @@ Strategic Design deals with situations arising in complex systems, larger organi
 A **Bounded Context** explicitly defines the context within which a particular model applies.
 *   **Purpose:** It sets boundaries in terms of team organization, specific application parts, code bases, and database schemas. This clarifies what needs to be consistent within the boundary and avoids confusion when different models coexist.
 *   **Problem it solves:** Prevents "model fragmentation" (different parts of the system using subtly conflicting interpretations of the model) and "false cognates" (different terms for the same concept, or same term for different concepts).
+
+Bounded Contexts (Strategic View):
+───────────────────────────────────────────────────────────
+│ Organisation                                             │
+│ ┌─────────────────┐ ┌─────────────────┐ ┌───────────────┐│
+│ │Sales Context    │ │Inventory Context│ │Payment Context││
+│ │ ┌─────────────┐ │ │ ┌─────────────┐ │ │ ┌───────────┐ ││
+│ │ │ DomainModel │ │ │ │ DomainModel │ │ │ │DomainModel│ ││
+│ │ └─────────────┘ │ │ └─────────────┘ │ │ └───────────┘ ││
+│ └─────────────────┘ └─────────────────┘ └───────────────┘│
+│                                                          │
+│            (Context Mapping & Integration)               │
+│  ┌───────────────────────────────────────────────────┐   │
+│  │Shared Kernel | Partnership | Anti-Corruption Layer│   │
+│  └───────────────────────────────────────────────────┘   │
+───────────────────────────────────────────────────────────
 
 ### 3.2. Context Map
 A **Context Map** is a global overview that identifies each model in play on a project and defines its Bounded Context, including implicit models of non-object-oriented subsystems. It describes the points of contact and explicit translation for any communication or sharing between contexts.
