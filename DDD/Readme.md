@@ -54,6 +54,8 @@ A **Layered Architecture** partitions a complex program into distinct layers, al
     *   **Infrastructure Layer:** Provides generic technical capabilities (e.g., message sending, persistence, drawing widgets) supporting higher layers.
 *   **Crucial Separation:** The sharp distinction and isolation of the **domain layer** is crucial for enabling Model-Driven Design, allowing the model to evolve richly and clearly.
 
+![![alt text](image-1.png)](image.png)
+
 ### 2.2. Entities
 **Entities** are objects defined by their continuity and identity, rather than solely by their attributes. Even if an Entity's attributes change, it remains the same Entity if its identity is preserved (e.g., a `Customer` with an ID number).
 
